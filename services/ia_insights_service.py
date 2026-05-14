@@ -4,7 +4,7 @@ import json
 import re
 from config.config import GEMINIAI_KEY
 
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINIAI_KEY}"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINIAI_KEY}"
 
 
 def gerar_insight_gemini(tipo_insight, curso, interesses, habilidades, materias_concluidas):
