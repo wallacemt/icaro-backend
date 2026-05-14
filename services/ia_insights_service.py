@@ -1,10 +1,12 @@
-import os
-import requests
 import json
 import re
+import google.generativeai as genai
 from config.config import GEMINIAI_KEY
+from config.config import GEMINIAI_MODEL
 
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINIAI_KEY}"
+
+genai.configure(api_key=GEMINIAI_KEY)
+_model = genai.GenerativeModel(GEMINIAI_MODEL)
 
 
 def gerar_insight_gemini(tipo_insight, curso, interesses, habilidades, materias_concluidas):
@@ -23,6 +25,7 @@ def gerar_insight_gemini(tipo_insight, curso, interesses, habilidades, materias_
         objetivo = "Gere um gráfico de caminhos de carreira compatíveis com esse perfil. Considere as tendências atuais do mercado de trabalho e as competências informadas. "
     else:
         raise ValueError("Tipo de insight inválido.")
+
     prompt = (
         f"{contexto}\n\n{objetivo}\n\n"
         f"Curso: {curso}\n"
@@ -30,28 +33,14 @@ def gerar_insight_gemini(tipo_insight, curso, interesses, habilidades, materias_
         f"Interesses: {', '.join(interesses)}\n"
         f"Habilidades: {', '.join(habilidades)}"
     )
-    body = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": prompt
-                    }
-                ]
-            }
-        ]
-    }
 
-    response = requests.post(GEMINI_URL, json=body)
-    response.raise_for_status()
-    data = response.json()
+    response = _model.generate_content(prompt)
+    raw_text = response.text
 
     try:
-        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
         cleaned = re.sub(r"```json|```", "", raw_text).strip()
-        parsed_json = json.loads(cleaned)
-        return parsed_json
-    except (KeyError, IndexError):
+        return json.loads(cleaned)
+    except (json.JSONDecodeError, AttributeError):
         return {"error": "Erro ao processar resposta da IA."}
 
 
@@ -62,28 +51,14 @@ def calcular_progresso_curso_gemini(curso, materias_concluidas):
         "Considere o currículo típico para esse curso no Brasil. "
         "Responda apenas com um JSON válido com o seguinte formato:\n\n"
         "{ \"porcentCompleted\": <número entre 0 e 100> }"
+        f"\n\nCurso: {curso}\nMatérias concluídas: {materias_concluidas}"
     )
 
-    body = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": f"{prompt}\n\nCurso: {curso}\nMatérias concluídas: {materias_concluidas}"
-                    }
-                ]
-            }
-        ]
-    }
-
-    response = requests.post(GEMINI_URL, json=body)
-    response.raise_for_status()
-    data = response.json()
+    response = _model.generate_content(prompt)
+    raw_text = response.text
 
     try:
-        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
         cleaned = re.sub(r"```json|```", "", raw_text).strip()
-        parsed_json = json.loads(cleaned)
-        return parsed_json
-    except (KeyError, IndexError, json.JSONDecodeError):
+        return json.loads(cleaned)
+    except (json.JSONDecodeError, AttributeError):
         return {"error": "Erro ao processar resposta da IA."}

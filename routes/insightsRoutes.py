@@ -19,8 +19,10 @@ def get_areas_em_alta():
     try:
         resposta = gerar_insight_gemini("areas", curso, interesses, habilidades, materias)
         return jsonify({"insight": resposta})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        return jsonify({"error": "Erro ao gerar insight. Tente novamente mais tarde."}), 500
 
 
 @insights_bp.route("/insights/carreira", methods=["GET"])
@@ -38,5 +40,7 @@ def get_carreira_insight():
     try:
         resposta = gerar_insight_gemini("carreira", curso, interesses, habilidades, materias)
         return jsonify({"insight": resposta})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        return jsonify({"error": "Erro ao gerar insight. Tente novamente mais tarde."}), 500

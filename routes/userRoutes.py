@@ -62,5 +62,5 @@ def create_or_update_profile():
         return jsonify({"message": "Perfil atualizado com sucesso"}), 200
     except ValueError as e:
         return jsonify({"error": e.errors()}), 422
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        return jsonify({"error": "Erro interno. Tente novamente mais tarde."}), 500
